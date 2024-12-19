@@ -4,6 +4,7 @@ require('dotenv').config()
 const bodyParser=require('body-parser')
 const cookieParser=require('cookie-parser')
 const cors=require('cors')
+const providerRoute=require('./routes/providerRoute')
 
 
 const app=express();
@@ -25,6 +26,9 @@ mongoose.connect(process.env.MONGO_URI).then(()=>{
         console.log(`The server is running on PORT ${PORT}`)
     })
 })
+
+//middleware
+app.use('/api/provider',providerRoute);
 
 app.get('/',(req,res)=>{
    res.send('My backend')
