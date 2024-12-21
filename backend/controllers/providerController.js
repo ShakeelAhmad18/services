@@ -1,5 +1,5 @@
 const jwt=require('jsonwebtoken')
-const ayncHandler=require('express-async-handler')
+const asyncHandler=require('express-async-handler')
 const bcrypt=require('bcryptjs')
 const ServiceProvider = require('../models/serviceProviderModel')
 
@@ -10,7 +10,7 @@ const generateToken=(id)=>{
 
 }
 
-const registerProvider=ayncHandler( async (req,res)=>{
+const registerProvider=asyncHandler( async (req,res)=>{
     const {name,email,password}=req.body;
 
     if(!name || !email || !password){
@@ -61,6 +61,58 @@ const registerProvider=ayncHandler( async (req,res)=>{
 })
 
 
+signProvider=asyncHandler( async (req,res)=>{
+     const {email,password}=req.body;
+
+     if(!email || !password){
+        return res.status(400).json({error:'Fill all fields'})
+     }
+
+     const emailExist=await ServiceProvider.findOne({email})
+
+     if(!emailExist){
+        return res.status(400).json({error:'Email does not Exist Please Sign up'})
+     }
+
+     if(password.length < 8){
+        return res.status(400).json({error:'Password must be 8 charactor'})
+     }
+      
+     //generate token
+     const token=generateToken(emailExist._id)
+
+     //check password is Correct
+     const isMatch=await bcrypt.compare(password,emailExist.password)
+
+     if(isMatch){
+        res.cookie('token',token,{
+          path:'/',
+          httpOnly:true,
+            expires:new Date(Date.now() + 1000 * 86400), // 1 day
+            sameSite:'none',   
+            secure:true
+        })}
+
+        if(emailExist && isMatch){
+            const {_id,name,email,profilePic,token,role}=emailExist;
+            
+            res.status(200).json({
+                _id,
+                name,
+                email,
+                profilePic,
+                token,
+                role
+            })}else{
+                return res.status(400).json({error:'Invalid Email or Password'})
+            }
+
+})
+
+
+
+
 module.exports={
-    registerProvider
+    registerProvider,
+    signProvider
 }
