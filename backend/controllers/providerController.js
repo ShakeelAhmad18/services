@@ -2,6 +2,7 @@ const jwt=require('jsonwebtoken')
 const asyncHandler=require('express-async-handler')
 const bcrypt=require('bcryptjs')
 const ServiceProvider = require('../models/serviceProviderModel')
+const { get } = require('mongoose')
 
 //generate Token
 const generateToken=(id)=>{
@@ -61,7 +62,7 @@ const registerProvider=asyncHandler( async (req,res)=>{
 })
 
 
-signProvider=asyncHandler( async (req,res)=>{
+const signProvider=asyncHandler( async (req,res)=>{
      const {email,password}=req.body;
 
      if(!email || !password){
@@ -106,6 +107,47 @@ signProvider=asyncHandler( async (req,res)=>{
             })}else{
                 return res.status(400).json({error:'Invalid Email or Password'})
             }
+})
+
+const signoutProvider=asyncHandler(async(req,res)=>{
+    res.clearCookie('token')
+    res.json({
+        message:'Signout Successfully'
+    })
+})
+
+
+const loginStatus=asyncHandler(async(req,res)=>{
+
+    const token=req.cookies.token;
+
+    if(!token){
+        return res.json({error:'False'})
+    }
+
+    //verify token
+    const varify=jwt.verify(token,process.env.JWT_SECRET)
+
+    if(varify){
+        return res.json({success:'True'})
+    }else{
+        return res.json({error:'False'})
+    }
+
+})
+
+//get provider
+const getProvider=asyncHandler(async (req,res)=>{
+
+    const provider=await ServiceProvider.findById(req.provider._id);
+
+    if(provider){
+        res.json(provider)
+    }else{
+        res.status(404)
+        throw new Error('Not Found')
+    }
+
 
 })
 
@@ -114,5 +156,8 @@ signProvider=asyncHandler( async (req,res)=>{
 
 module.exports={
     registerProvider,
-    signProvider
+    signProvider,
+    signoutProvider,
+    loginStatus,
+    getProvider
 }

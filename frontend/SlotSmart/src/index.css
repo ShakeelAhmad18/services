@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.main-navbar.menu-open .navbar-collapse {
+    display: block;
+  }
+  
+  .navbar-collapse.collapse {
+    display: none;
+  }
+  
+  .navbar-collapse.show {
+    display: block;
+  }
+  
